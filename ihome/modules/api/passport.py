@@ -88,7 +88,7 @@ def login():
         return jsonify(errno=RET.DBERR, errmsg='查询数据错误')
 
     if not user:
-        return jsonify(errno=RET.USERERR, errmsg='用户不存在')
+        return jsonify(errno=RET.USERERR, errmsg='用户未注册')
 
     #  判断用户输入的密码是否与该账号一致
     if not user.check_password(password):
@@ -96,7 +96,7 @@ def login():
 
     #  通过密码校验,在session中保存用户的登录信息
     session['user_id'] = user.id
-    session['mobile'] = user.mobile
+    session['name'] = user.name
 
     # 更新用户最后一次登录时间
     try:
@@ -115,7 +115,29 @@ def check_login():
     检测用户是否登录，如果登录，则返回用户的名和用户id
     :return:
     """
-    pass
+    # 获取session中的用户id
+    user_id = session.get('user_id')
+    user = None
+
+    # 根据用户id查询用户对象
+    if user_id:
+        try:
+            user = User.query.get(user_id)
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.DBERR, errmsg="查询数据库失败")
+
+        # 判断是否存在该用户
+        if user:
+            data = {
+                "name": user.name,
+                "user_id": user.id
+            }
+            return jsonify(errno=RET.OK, errmsg="OK", data=data)
+        else:
+            return jsonify(errno=RET.SESSIONERR, errmsg="未登录")
+
+    return jsonify(errno=RET.SESSIONERR, errmsg="未登录")
 
 
 # 退出登录
@@ -125,4 +147,7 @@ def logout():
     1. 清除session中的对应登录之后保存的信息
     :return:
     """
-    pass
+    session.pop('user_id', None)
+    session.pop('name', None)
+    return jsonify(errno=RET.OK, errmsg="OK")
+
