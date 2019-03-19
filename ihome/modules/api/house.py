@@ -1,6 +1,6 @@
 import datetime
 
-from flask import current_app, jsonify, request, g, session
+from flask import current_app, jsonify, request, g, session, render_template
 from ihome import sr, db
 from ihome.models import Area, House, Facility, HouseImage, Order
 from ihome.modules.api import api_blu
@@ -16,12 +16,12 @@ from ihome.utils.response_code import RET
 @api_blu.route('/user/houses')
 @login_required
 def get_user_house_list():
-    """
-    获取用户房屋列表
-    1. 获取当前登录用户id
-    2. 查询数据
-    :return:
-    """
+    # """
+    # 获取用户房屋列表
+    # 1. 获取当前登录用户id
+    # 2. 查询数据
+    # :return:
+    # """
    pass
 
 
@@ -33,7 +33,16 @@ def get_areas():
     2. 返回
     :return:
     """
-    pass
+    try:
+        areas = Area.query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='获取区域信息异常')
+    data = []
+    for area in areas:
+        data.append(area.to_dict())
+    return jsonify(errno=RET.OK, errmsg='成功', data=data)
+
 
 # 上传房屋图片
 @api_blu.route("/houses/<int:house_id>/images", methods=['POST'])
@@ -96,7 +105,15 @@ def house_index():
     获取首页房屋列表
     :return:
     """
-    pass
+    try:
+        houses = House.query.order_by(House.id.desc()).limit(5)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg='获取房屋信息异常')
+    house_list = []
+    for house in houses if houses else []:
+        house_list.append(house.to_basic_dict())
+    return jsonify(errno=RET.OK,errmsg='成功',data=house_list)
 
 
 # 搜索房屋/获取房屋列表

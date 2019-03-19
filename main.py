@@ -1,6 +1,7 @@
+#!/home/python/.virtualenvs/HMHome/bin/python3
 from flask import session
 from flask_script import Manager
-from flask_migrate import  MigrateCommand
+from flask_migrate import MigrateCommand
 from ihome import create_app
 
 
@@ -14,3 +15,4 @@ mgr.add_command("mc", MigrateCommand)
 
 if __name__ == '__main__':
     mgr.run()
+
