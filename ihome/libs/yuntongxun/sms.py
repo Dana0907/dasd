@@ -1,21 +1,21 @@
 # -*- coding:utf-8 -*-
-
-from .CCPRestSDK import REST
+from ihome.libs.yuntongxun.CCPRestSDK import REST
 import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
-ssl._create_default_https_context = ssl._create_unverified_context  # 全局取消证书验证
+
 
 # 说明：主账号，登陆云通讯网站后，可在"控制台-应用"中看到开发者主账号ACCOUNT SID
-_accountSid = '8aaf0708568d4143015697b0f4960888'
+_accountSid = '8aaf07086904be0b0169759b362830d5'
 
 # 说明：主账号Token，登陆云通讯网站后，可在控制台-应用中看到开发者主账号AUTH TOKEN
-_accountToken = '57c6c3ef3cef47e680519a734f6812f8'
+_accountToken = '38677d26e15941b9ac6b0173225c9e1e'
 
 # 请使用管理控制台首页的APPID或自己创建应用的APPID
-_appId = '8aaf0708568d4143015697b0f56e088f'
+_appId = '8aaf07086904be0b0169759b368430dc'
 
 # 说明：请求地址，生产环境配置成app.cloopen.com
-_serverIP = 'sandboxapp.cloopen.com'
+_serverIP = 'app.cloopen.com'
 
 # 说明：请求端口 ，生产环境为8883
 _serverPort = "8883"
@@ -51,6 +51,8 @@ class CCP(object):
     def __new__(cls, *args, **kwargs):
         # 判断是否存在类属性_instance，_instance是类CCP的唯一对象，即单例
         if not hasattr(CCP, "_instance"):
+            #  将客户端和云通信的权限鉴定操作封装到单列中提高性能
+            # 创建instance对象，让ccp类保存
             cls._instance = super(CCP, cls).__new__(cls, *args, **kwargs)
             cls._instance.rest = REST(_serverIP, _serverPort, _softVersion)
             cls._instance.rest.setAccount(_accountSid, _accountToken)
@@ -60,9 +62,10 @@ class CCP(object):
     def send_template_sms(self, to, datas, temp_id):
         """发送模板短信"""
         # @param to 手机号码
-        # @param datas 内容数据 格式为数组 例如：{'12','34'}，如不需替换请填 ''
+        # @param datas 内容数据 格式为数组 例如：{'125665','5'}，如不需替换请填 ''
         # @param temp_id 模板Id
         result = self.rest.sendTemplateSMS(to, datas, temp_id)
+        print(result)
         # 如果云通讯发送短信成功，返回的字典数据result中statuCode字段的值为"000000"
         if result.get("statusCode") == "000000":
             # 返回0 表示发送短信成功
@@ -70,9 +73,12 @@ class CCP(object):
         else:
             # 返回-1 表示发送失败
             return -1
+    def main(self):
+        pass
+
 
 
 if __name__ == '__main__':
     ccp = CCP()
     # 注意： 测试的短信模板编号为1
-    ccp.send_template_sms('18516952650', ['1234', 5], 1)
+    ccp.send_template_sms('17690220432', ['1234', 5], 1)
