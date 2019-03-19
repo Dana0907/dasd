@@ -37,10 +37,8 @@ def get_user_info():
     if not data['name']:
         data['name'] = data['mobile']
 
-    if request.args.get('type'):
-        return jsonify(errno=RET.OK, data=data)
+    return jsonify(errno=RET.OK, data=data)
 
-    return render_template('profile/my.html', errno=RET.OK, data=data)
 
 
 @api_blu.route('/change_info')
