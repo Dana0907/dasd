@@ -37,10 +37,9 @@ def get_user_house_list():
     user_house = user.houses
     house_list = user_house
     house_dict = []
-    update_time = []
     for house1 in house_list if house_list else None:
         house_dict.append(house1.to_basic_dict())
-        update_time.append(house1.update_time)
+
 
 
 
