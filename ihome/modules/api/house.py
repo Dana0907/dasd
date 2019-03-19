@@ -1,8 +1,8 @@
 import datetime
 
-from flask import current_app, jsonify, request, g, session
+from flask import current_app, jsonify, request, g, session,render_template
 from ihome import sr, db
-from ihome.models import Area, House, Facility, HouseImage, Order
+from ihome.models import Area, House, Facility, HouseImage, Order, User
 from ihome.modules.api import api_blu
 from ihome.utils import constants
 from ihome.utils.common import login_required
@@ -16,15 +16,36 @@ from ihome.utils.response_code import RET
 @api_blu.route('/user/houses')
 @login_required
 def get_user_house_list():
+    pass
     """
     获取用户房屋列表
     1. 获取当前登录用户id
     2. 查询数据
     :return:
-    """
-   pass
+     """
+    user_id = g.user_id
+    if not user_id:
+        return jsonify(errno=RET.USERERR, errmsg="请先登录")
+
+    try:
+        user = User.query.get(user_id)
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno = RET.DATAERR, errmsg = "数据库数据出错")
+
+    user_house = user.houses
+    house_list = user_house
+    house_dict = []
+    update_time = []
+    for house1 in house_list if house_list else None:
+        house_dict.append(house1.to_basic_dict())
+        update_time.append(house1.update_time)
 
 
+
+
+    return jsonify(errno = RET.OK, errmsg = "OK", data = house_dict)
 # 获取地区信息
 @api_blu.route("/areas")
 def get_areas():
@@ -33,8 +54,16 @@ def get_areas():
     2. 返回
     :return:
     """
-    pass
+    try:
+        area_list = Area.query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DATAERR, errmsg="数据库查询数据出错")
+    area_dict = []
+    for area in area_list if area_list else None:
+        area_dict.append(area.to_dict())
 
+    return jsonify(errno=RET.OK, errmsg="OK", data= area_dict)
 # 上传房屋图片
 @api_blu.route("/houses/<int:house_id>/images", methods=['POST'])
 @login_required
@@ -46,15 +75,14 @@ def upload_house_image(house_id):
     4. 进行返回
     :return:
     """
-    pass
-
 
 # 发布房源
-@api_blu.route("/houses", methods=["POST"])
+@api_blu.route("/houses", methods=["GET","POST"])
 @login_required
 def save_new_house():
     """
     1. 接收参数并且判空
+
     2. 将参数的数据保存到新创建house模型
     3. 保存house模型到数据库
     前端发送过来的json数据
@@ -75,8 +103,6 @@ def save_new_house():
     }
     :return:
     """
-    pass
-
 
 # 房屋详情
 @api_blu.route('/houses/<int:house_id>')
