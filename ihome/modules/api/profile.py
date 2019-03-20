@@ -135,6 +135,35 @@ def get_user_auth():
     return jsonify(errno=RET.OK, errmsg='成功', data=data)
 
 
+# 获取用户实名信息
+@api_blu.route('/user/auth')
+@login_required
+def get_user_auth1():
+    """
+    1. 取到当前登录用户id
+    2. 通过id查找到当前用户
+    3. 获取当前用户的认证信息
+    4. 返回信息
+    :return:
+    """
+    user_id = g.user_id
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='查询用户信息异常')
+
+    id_card = user.id_card
+    real_name = user.avatar_url
+    data = {
+        'id_card': id_card,
+        'real_name': real_name
+
+    }
+    print(data)
+    return jsonify(errno=RET.OK, errmsg='成功', data=data)
+
+
 # 设置用户实名信息
 @api_blu.route('/auth', methods=["POST"])
 @login_required
