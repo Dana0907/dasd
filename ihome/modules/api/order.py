@@ -73,8 +73,8 @@ def add_order():
         return jsonify(errno=RET.PARAMERR, errmsg="不可预定当前日期以前的房间")
 
     # 列出当前订单时间与已有订单存在时间交叉的三种情况的筛选条件
-    filters1 = and_(start_date < Order.begin_date < end_date)
-    filters2 = and_(start_date < Order.end_date < end_date)
+    filters1 = start_date < Order.begin_date < end_date
+    filters2 = start_date < Order.end_date < end_date
     filters3 = and_(Order.begin_date <= start_date , Order.end_date >= end_date)  
 
     # 列出当前房屋已有订单的五种不能释放的状态
