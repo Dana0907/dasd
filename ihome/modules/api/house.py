@@ -2,7 +2,7 @@ import datetime
 
 from flask import current_app, jsonify, request, g, session, render_template
 from ihome import sr, db
-from ihome.models import Area, House, Facility, HouseImage, Order
+from ihome.models import Area, House, Facility, HouseImage, Order, User
 from ihome.modules.api import api_blu
 from ihome.utils import constants
 from ihome.utils.common import login_required
@@ -25,20 +25,17 @@ def get_user_house_list():
     user_id = g.user_id
     if not user_id:
         return jsonify(errno=RET.USERERR, errmsg="请先登录")
-
     try:
-        user = User.query.get(user_id)
+        houses = House.query.filter(House.user_id == user_id).all()
+
 
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DATAERR, errmsg="数据库数据出错")
-
-    user_house = user.houses
-    house_list = user_house
     house_dict = []
-    for house1 in house_list if house_list else None:
-        house_dict.append(house1.to_basic_dict())
-
+    if houses:
+        for house in houses if houses else None:
+            house_dict.append(house.to_basic_dict())
     return jsonify(errno=RET.OK, errmsg="OK", data=house_dict)
 
 
@@ -72,32 +69,32 @@ def upload_house_image(house_id):
     4. 进行返回
     :return:
     """
-    house_image = request.files.get('images')
+    house_image = request.files.get('house_image')
+    images_data = house_image.read()
     house_id = house_id
-    user = g.ih_user_profile
+    user = g.user_id
 
-    if not user:
-        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
 
+    try:
+        house = House.query.get(house_id)
+    except Exception as e:
+        return jsonify(errno=RET.NODATA, errmsg="没有该房间")
     # 将图片上传到七牛云
     try:
-        image_name = storage_image(house_image.read())
+        image_name = storage_image(images_data)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="上传图片到七牛云异常")
         # 图片名称没有值
     if not image_name:
         return jsonify(errno=RET.DBERR, errmsg="上传图片到七牛云异常")
-
     image = HouseImage()
-    image.url = constants.QINIU_DOMIN_PREFIX + image_name
+    image.url = image_name
     image.house_id = house_id
-
     data = {
-        "url": image.url,
-
+        "url": constants.QINIU_DOMIN_PREFIX + image.url,
     }
-
+    house.index_image_url = image_name
     try:
         db.session.add(image)
         db.session.commit()
@@ -106,8 +103,7 @@ def upload_house_image(house_id):
         # 数据库回滚
         db.session.rollback()
         return jsonify(errno=RET.DBERR, errormsg="保存数据对象异常")
-
-    return jsonify(error=RET.OK, errmsg="上传图片成功", data=data)
+    return jsonify(errno=RET.OK, errmsg="上传图片成功", data=data)
 
 
 # 发布房源
@@ -136,28 +132,26 @@ def save_new_house():
     }
     :return:
     """
-    title = request.form.get('title')
-    price = request.form.get('price')
-    area_id = request.form.get('area_id')
-    address = request.form.get('address')
-    room_count = request.form.get('room_count')
-    acreage = request.form.get('acreage')
-    unit = request.form.get('unit')
-    capacity = request.form.get('capacity')
-    beds = request.form.get('beds')
-    deposit = request.form.get('deposit')
-    min_days = request.form.get('min_days')
-    max_days = request.form.get('max_days')
-    facility = request.form.get('facility')
-    user = g.ih_user_profile
+    title = request.json.get('title')
+    price = request.json.get('price')
+    area_id = request.json.get('area_id')
+    address = request.json.get('address')
+    room_count = request.json.get('room_count')
+    acreage = request.json.get('acreage')
+    unit = request.json.get('unit')
+    capacity = request.json.get('capacity')
+    beds = request.json.get('beds')
+    deposit = request.json.get('deposit')
+    min_days = request.json.get('min_days')
+    max_days = request.json.get('max_days')
+    facility = request.json.get('facility')
+    # user = g.ih_user_profile
     # 非空判断
     if not all([title, price, area_id, address, room_count, acreage, unit, capacity, beds, deposit, min_days, max_days,
                 facility]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
-
-    if not user:
-        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
-
+    # if not user:
+    #     return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
     house = House()
     # 标题
     house.title = str(title)
@@ -174,9 +168,8 @@ def save_new_house():
     house.min_days = int(min_days)
     house.max_days = int(max_days)
     house.facility = facility
-    house.user_id = g.ih_user_profile.id
-    house_id = g.ih_house_info.id
-
+    house.user_id = g.user_id
+    # house_id = g.ih_house_info.id
     # 3.2 保存回数据库
     try:
         db.session.add(house)
@@ -187,11 +180,15 @@ def save_new_house():
         db.session.rollback()
         return jsonify(errno=RET.DBERR, errormsg="保存房源对象异常")
 
-    return jsonify(error=RET.OK, errmsg="发布房源成功", data={house_id})
+    data = {
+        "house_id": house.id
+    }
+    return jsonify(errno=RET.OK, errmsg="发布房源成功", data=data)
 
 
 # 房屋详情
 @api_blu.route('/houses/<int:house_id>')
+@login_required
 def get_house_detail(house_id):
     """
     1. 通过房屋id查询出房屋模型
@@ -199,13 +196,10 @@ def get_house_detail(house_id):
     :return:
     """
     user_id = g.user_id
-
     if not user_id:
-        user_id = -1
-        # 判断参数是否有值
+        user_id = -1        # 判断参数是否有值
     if not house_id:
         return jsonify(errno=RET.PARAMERR, errmsg='参数缺失')
-
     try:
         # 通过房屋id查询出房屋模型
         house = House.query.get(house_id)

@@ -73,9 +73,9 @@ def add_order():
         return jsonify(errno=RET.PARAMERR, errmsg="不可预定当前日期以前的房间")
 
     # 列出当前订单时间与已有订单存在时间交叉的三种情况的筛选条件
-    filters1 = start_date < Order.begin_date < end_date
-    filters2 = start_date < Order.end_date < end_date
-    filters3 = and_(Order.begin_date <= start_date , Order.end_date >= end_date)  
+    filters1 = and_(start_date < Order.begin_date,Order.begin_date < end_date)
+    filters2 = and_(start_date < Order.end_date,Order.begin_date < end_date)
+    filters3 = and_(Order.begin_date <= start_date, Order.end_date >= end_date)
 
     # 列出当前房屋已有订单的五种不能释放的状态
     status_li = ["WAIT_ACCEPT", "WAIT_PAYMENT", "PAID", "WAIT_COMMENT", "COMPLETE"]
@@ -152,7 +152,7 @@ def get_orders():
 
             # 以客户的身份查询订单
         else:
-            orders = Order.query.get(user_id)
+            orders = Order.query.filter(Order.user_id == user_id).all()
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="数据库订单查询异常")
@@ -167,9 +167,9 @@ def get_orders():
 
 
 # 接受/拒绝订单"http://192.168.131.143:5001/api/v1.0/orders?role=landlord
-@api_blu.route("/orders/<int:order_id>/status", methods=["PUT"])
+@api_blu.route("/orders", methods=["PUT"])
 @login_required
-def change_order_status(order_id):
+def change_order_status():
     """
     1. 接受参数：order_id
     2. 通过order_id找到指定的订单，(条件：status="待接单")
@@ -181,12 +181,14 @@ def change_order_status(order_id):
     # 获取用户id
     user_id = g.user_id
     # 获取请求参数
-    req_data = request.get_json()
 
-    if not req_data:
+    order_id = request.json.get('order_id')
+    action = request.json.get("action")
+    reason = request.json.get("reason")
+
+    if not all([order_id, action]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
     # 获取前端用户请求为接单还是拒单，
-    action = req_data.get("action")
     if action not in ["accept", "reject"]:
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
     # 在数据库中根据订单号查询订单状态为等待接单状态的订单
@@ -203,16 +205,15 @@ def change_order_status(order_id):
 
     # 房东选择接单，对应订单的状态为等待评论，拒单需要房东填写拒单的原因
     if action == "accept":
-        order.status = "WAIT_PAYMENT"
+        order.status = "WAIT_COMMENT"
     elif action == "reject":
-        reason = req_data.get("reason")
+
         if not reason:
             return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
         order.status = "REJECTED"
         order.comment = reason
     # 将订单修改后提交到数据库中
     try:
-        db.session.add(order)
         db.session.commit()
     except Exception as e:
         current_app.logger.error(e)
@@ -253,6 +254,7 @@ def order_comment():
         return jsonify(errno=RET.NODATA, errmsg="订单不存在不允许发布评论")
     # 给订单添加评论数据
     order.comment = comment
+    order.status = "COMPLETE"
 
     # 3.3 将评论保存到数据库
     try:
