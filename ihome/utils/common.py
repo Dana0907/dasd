@@ -18,6 +18,7 @@ def login_required(f):
             return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
         else:
             g.user_id = user_id
+
             # 执行所装饰的函数并返回其响应
             return f(*args, **kwargs)
 

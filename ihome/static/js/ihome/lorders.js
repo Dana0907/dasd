@@ -29,7 +29,7 @@ $(document).ready(function(){
             $(".modal-accept").on("click", function () {
                 var orderId = $(".modal-accept").attr("order-id")
                 $.ajax({
-                    url: "/api/v1.0/orders",
+                    url: "/api/v1.0/orders"+orderId+"/status",
                     type: "put",
                     contentType: "application/json",
                     headers: {
@@ -58,7 +58,7 @@ $(document).ready(function(){
                 var orderId = $(".modal-reject").attr("order-id")
                 var reason = $("#reject-reason").val()
                 $.ajax({
-                    url: "/api/v1.0/orders",
+                    url: "/api/v1.0/orders"+orderId+"/status",
                     type: "put",
                     contentType: "application/json",
                     headers: {

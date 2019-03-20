@@ -107,10 +107,9 @@ def save_new_house():
 
 # 房屋详情
 @api_blu.route('/houses/<int:house_id>')
-@login_required
 def get_house_detail(house_id):
     """
-
+    1. 通过房屋id查询出房屋模型
     :param house_id:
     :return:
     """
