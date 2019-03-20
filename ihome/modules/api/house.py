@@ -2,7 +2,7 @@ import datetime
 
 from flask import current_app, jsonify, request, g, session
 from ihome import sr, db
-from ihome.models import Area, House, Facility, HouseImage, Order
+from ihome.models import Area, House, Facility, HouseImage, Order,db
 from ihome.modules.api import api_blu
 from ihome.utils import constants
 from ihome.utils.common import login_required
@@ -22,7 +22,7 @@ def get_user_house_list():
     2. 查询数据
     :return:
     """
-   pass
+    pass
 
 
 # 获取地区信息
