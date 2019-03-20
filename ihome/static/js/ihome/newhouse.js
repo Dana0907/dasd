@@ -41,7 +41,6 @@ $(document).ready(function(){
             facility[i] = x.value
         })
         params["facility"] = facility
-
         $.ajax({
             url: "/api/v1.0/houses",
             type: "post",
@@ -51,6 +50,7 @@ $(document).ready(function(){
             },
             data: JSON.stringify(params),
             success: function (resp) {
+
                 if (resp.errno == "0") {
                     $("#form-house-info").hide()
                     $("#form-house-image").show()
