@@ -40,7 +40,6 @@ def get_user_info():
     return jsonify(errno=RET.OK, data=data)
 
 
-
 @api_blu.route('/change_info')
 def change_info():
     return render_template('profile/profile.html', errno=RET.OK)
@@ -121,21 +120,6 @@ def set_user_avatar():
     return jsonify(errno=RET.OK, errmsg='更改成功', avatar_url=avatar_url)
 
 
-# 进入实名信息页
-@api_blu.route('/auth')
-@login_required
-def user_auth():
-    """
-    1. 取到当前登录用户id
-    2. 通过id查找到当前用户
-    3. 获取当前用户的认证信息
-    4. 返回信息
-    :return:
-    """
-
-    return render_template('profile/auth.html')
-
-
 # 获取用户实名信息
 @api_blu.route('/get_auth')
 @login_required
@@ -167,11 +151,11 @@ def set_user_auth():
     params = request.json
     real_name = params.get('real_name')
     id_card = params.get('id_card')
-    if not all([real_name,id_card]):
+    if not all([real_name, id_card]):
         return jsonify(errno=RET.PARAMERR, errmsg='参数错误')
 
     regex = '^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$|^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$'
-    if not re.match(regex,id_card):
+    if not re.match(regex, id_card):
         print('错误的身份证号')
         return jsonify(errno=RET.PARAMERR, errmsg='错误的身份证号')
 
@@ -187,7 +171,3 @@ def set_user_auth():
         return jsonify(errno=RET.DBERR, errmsg='保存实名认证异常')
 
     return jsonify(errno=RET.OK, errmsg='成功')
-
-
-
-

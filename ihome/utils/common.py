@@ -11,8 +11,7 @@ def login_required(f):
     @functools.wraps(f)  # 防止装饰器去装饰函数的时候，被装饰的函数__name__属性被更改的问题
     def wrapper(*args, **kwargs):
         # if 没有登录：
-        user_id = 7
-        # user_id = session.get("user_id")
+        user_id = session.get("user_id")
         if not user_id:
             # 没有登录直接返回没有登录的JSON
             return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
