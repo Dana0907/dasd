@@ -154,7 +154,7 @@ def get_user_auth1():
         return jsonify(errno=RET.DBERR, errmsg='查询用户信息异常')
 
     id_card = user.id_card
-    real_name = user.avatar_url
+    real_name = user.real_name
     data = {
         'id_card': id_card,
         'real_name': real_name
