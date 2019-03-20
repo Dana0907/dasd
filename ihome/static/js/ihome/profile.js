@@ -13,7 +13,7 @@ function getCookie(name) {
 
 $(document).ready(function () {
     // 在页面加载完毕向后端查询用户的信息
-    $.get("/api/v1.0/user", function (resp) {
+    $.get("/api/v1.0/user", {type:'change_info'},function (resp) {
         if (resp.errno == "0") {
             // 展示数据
             $("#user-avatar").attr("src", resp.data.avatar_url)
@@ -30,14 +30,14 @@ $(document).ready(function () {
         e.preventDefault()
         // 上传头像
         $(this).ajaxSubmit({
-            url: "/api/v1.0/user/avatar",
+            url: "/api/v1.0/avatar",
             type: "post",
             headers: {
                 "X-CSRFToken": getCookie("csrf_token")
             },
             success: function (resp) {
                 if (resp.errno == "0") {
-                    $("#user-avatar").attr("src", resp.data.avatar_url)
+                    $("#user-avatar").attr("src", resp.avatar_url)
                 }else if(resp.errno == "4101") {
                     location.href = "/login.html"
                 }else {
@@ -78,6 +78,10 @@ $(document).ready(function () {
             }
         })
     })
+
+
+
+
 
 })
 

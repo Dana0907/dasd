@@ -14,7 +14,7 @@ function getCookie(name) {
 
 $(document).ready(function(){
     // 查询用户的实名认证信息
-    $.get("/api/v1.0/user/auth", function (resp) {
+    $.get("/api/v1.0/get_auth", function (resp) {
         if (resp.errno == "0") {
             // 判断是否有认证信息
             if (resp.data.real_name && resp.data.id_card) {
@@ -55,7 +55,7 @@ $(document).ready(function(){
         }
 
         $.ajax({
-            url: "/api/v1.0/user/auth",
+            url: "/api/v1.0/auth",
             type: "post",
             contentType: "application/json",
             headers: {

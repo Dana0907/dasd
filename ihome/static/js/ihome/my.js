@@ -17,6 +17,7 @@ function logout() {
     })
 }
 
+
 $(document).ready(function(){
 
     // 在页面加载完毕之后去加载个人信息
