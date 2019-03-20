@@ -6,9 +6,11 @@ from redis import StrictRedis
 class Config:  # 定义配置类  封装所有的配置, 方便对配置统一的管理
     # 定义和配置同名的类属性
     DEBUG = True  # 设置调试模式
-    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@127.0.0.1:3306/ihome"  # 数据库连接地址
+    # SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@192.168.230.133:3306/ihome"  # 数据库连接地址
+    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@127.0.0.1:3306/ihome"
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # 设置追踪数据库变化
-    REDIS_HOST = "127.0.0.1"  # redis的ip
+    # REDIS_HOST = "192.168.230.133"  # redis的ip
+    REDIS_HOST = "127.0.0.1"
     REDIS_PORT = 6379  # redis的端口
     SESSION_TYPE = "redis"  # session存储类型  性能好 方便设置过期时间
     SESSION_REDIS = StrictRedis(host=REDIS_HOST, port=REDIS_PORT)  # redis连接对象
